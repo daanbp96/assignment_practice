@@ -5,11 +5,23 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 
-# === STEP 1: Load data ===
-# (Assumes you have `data` and `test_data` DataFrames already loaded)
+from dummy_data_generator import generate_dummy_data
 
+
+# === STEP 1: Load data ===
+# === PARAMETER: Use dummy or real CSV data ===
+USE_DUMMY_DATA = True
+
+# === STEP 1: Load data ===
+if USE_DUMMY_DATA:
+    data, test_data = generate_dummy_data()
+else:
+    data = pd.read_csv("train.csv")
+    test_data = pd.read_csv("test.csv")
+
+    
 # === STEP 2: Convert worded numbers ===
-def word_to_num(value):
+def word_to_num(value: float | int) -> float:
     try:
         if isinstance(value, str):
             return w2n.word_to_num(value.replace(",", ""))
@@ -22,21 +34,21 @@ for col in ['Height(px)', 'Width(px)', 'InternalStorage(MB or GB)']:
     test_data[col] = test_data[col].apply(word_to_num)
 
 # === STEP 3: Normalize Units ===
-def normalize_ram(val):
+def normalize_ram(value: float | int) -> float:
     try:
-        return val / 1024 if val > 2048 else val
+        return value / 1024 if value > 2048 else value
     except:
         return np.nan
 
-def normalize_storage(val):
+def normalize_storage(value: float | int) -> float:
     try:
-        return val * 1024 if val < 1000 else val
+        return value * 1024 if value < 1000 else value
     except:
         return np.nan
 
-def normalize_weight(val):
+def normalize_weight(value: float | int) -> float:
     try:
-        return val * 1000 if val < 10 else val
+        return value * 1000 if value < 10 else value
     except:
         return np.nan
 
@@ -51,7 +63,7 @@ for df in [data, test_data]:
     }, inplace=True)
 
 # === STEP 4: Remove Outliers using IQR ===
-def remove_outliers_iqr(df, columns):
+def remove_outliers_iqr(df, columns) -> pd.DataFrame:
     for col in columns:
         Q1 = df[col].quantile(0.25)
         Q3 = df[col].quantile(0.75)
