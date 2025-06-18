@@ -1,7 +1,5 @@
 import pandas as pd
 
-import pandas as pd
-
 def add_age_bins(df: pd.DataFrame) -> pd.DataFrame:
     """
     Add a categorical age bin feature to the dataframe.
