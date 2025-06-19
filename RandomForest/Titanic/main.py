@@ -1,10 +1,9 @@
 import pandas as pd
 from src.clean import clean_data
 from src.features import generate_features
-from src.models.random_forest import train_random_forest
+from src.models.random_forest import RandomForestModel
 from src.models.baseline import train_baseline_model
-from RandomForest.Titanic.src.models.utils import evaluate_model, make_predictions, split_train_test
-from src.predict import make_predictions
+from sklearn.model_selection import train_test_split
 
 # Load data
 train_df = pd.read_csv("RandomForest/Titanic/data/raw/train.csv")
@@ -14,36 +13,44 @@ test_df = pd.read_csv("RandomForest/Titanic/data/raw/test.csv")
 cleaned_train_df = clean_data(train_df)
 cleaned_test_df = clean_data(test_df)
 
-eng_trained_df = generate_features(cleaned_train_df)
+# Feature engineering
+eng_train_df = generate_features(cleaned_train_df)
 eng_test_df = generate_features(cleaned_test_df)
 
+# Split data
+def split(df: pd.DataFrame, target: str = "Survived", test_size: float = 0.2, random_state: int = 42):
+    X = df.drop(columns=[target])
+    y = df[target]
+    return train_test_split(X, y, test_size=test_size, stratify=y, random_state=random_state)
 
-# Train/val split
-X_train, X_val, y_train, y_val = split_train_test(cleaned_train_df, target_column = 'Survived')
-
+# Split both cleaned and engineered
+X_train_clean, X_val_clean, y_train_clean, y_val_clean = split(cleaned_train_df)
+X_train_eng, X_val_eng, y_train_eng, y_val_eng = split(eng_train_df)
 
 results = {}
 
-# Baseline model
-baseline_model = train_baseline_model(X_train, y_train)
-results['baseline'] = evaluate_model(baseline_model, X_val, y_val, "baseline")
+# Random Forest on cleaned data
+rf_clean = RandomForestModel("RF_clean")
+rf_clean.train(X_train_clean, y_train_clean)
+results['random_forest_clean'] = rf_clean.evaluate(X_val_clean, y_val_clean)
 
-# RF no engineered features
-rf_model_no_feat = train_random_forest(cleaned_train_df)
-results['random_forest_no_features'] = evaluate_model(rf_model_no_feat, X_val, y_val, "random_forest_no_features")
+# Random Forest on engineered data
+rf_eng = RandomForestModel("RF_eng")
+rf_eng.train(X_train_eng, y_train_eng)
+results['random_forest_engineered'] = rf_eng.evaluate(X_val_eng, y_val_eng)
 
-rf_model_feat = train_rf(X_train_eng, y_train_eng)
-results['random_forest_with_features'] = evaluate_model(rf_model_feat, X_val_eng, y_val_eng, "random_forest_with_features")
-
-# Save engineered data for inspection
+# Save engineered training set
 eng_train_df.to_csv("RandomForest/Titanic/data/processed/train.csv", index=False)
 
-# Predict on test data
-submission = make_predictions(rf_model_feat, eng_test_df)
-submission_path = "RandomForest/Titanic/data/results/submission_random_forest_with_features.csv"
+# Predict for submission (optional)
+preds = rf_eng.predict(eng_test_df.drop(columns=["PassengerId"]))
+submission = eng_test_df[["PassengerId"]].copy()
+submission["Survived"] = preds
+submission_path = "RandomForest/Titanic/data/results/submission_random_forest_engineered.csv"
 submission.to_csv(submission_path, index=False)
 print(f"✅ Saved predictions to {submission_path}")
 
+# Print summary
 print("\n=== Summary ===")
 for model_name, acc in results.items():
     print(f"{model_name}: {acc:.4f}")
