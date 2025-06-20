@@ -48,7 +48,7 @@ def generate_features(df: pd.DataFrame) -> pd.DataFrame:
     df = pd.concat([df, agebin_dummies], axis=1)
 
     # Drop original columns that are no longer needed
-    df = df.drop(columns=['Name', 'Ticket', 'Cabin', 'Embarked', 'AgeBin'])
+    df = df.drop(columns=['Embarked', 'AgeBin'])
 
     return df
 

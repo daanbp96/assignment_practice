@@ -10,4 +10,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     # Create HasCabin feature (boolean)
     df['HasCabin'] = df['Cabin'].notna().astype(int)
 
+    df = df.drop(columns=['Name', 'Ticket', 'Cabin',])
+
     return df
