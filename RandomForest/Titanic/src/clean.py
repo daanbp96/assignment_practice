@@ -27,6 +27,6 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df['HasCabin'] = df['Cabin'].notna().astype(int)
 
     # Drop irrelevant or text-heavy columns
-    df = df.drop(columns=['Name', 'Ticket', 'Cabin', 'Embarked'])
+    df = df.drop(columns=['Name', 'Ticket', 'Cabin', 'Embarked', 'PassengerId'])
 
     return df

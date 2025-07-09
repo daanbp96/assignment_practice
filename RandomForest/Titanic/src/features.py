@@ -9,7 +9,7 @@ def add_age_bins(df: pd.DataFrame) -> pd.DataFrame:
     df['AgeBin'] = df['AgeBin'].cat.add_categories('Unknown').fillna('Unknown')
     return df
 
-def generate_features(df: pd.DataFrame) -> pd.DataFrame:
+def enrich_rf(df: pd.DataFrame) -> pd.DataFrame:
     """
     Add engineered features to improve model performance.
     """
